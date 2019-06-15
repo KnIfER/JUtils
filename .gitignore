@@ -1,0 +1,6 @@
+org/
+json/
+moov/
+#git remote add origin
+#git push -u origin +master
+#git rm filepicker/build/ -r -f

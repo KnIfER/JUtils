@@ -1,0 +1,48 @@
+{
+   "TimelineMode": 1,
+   "VideoStretchMode": 6,
+   "playlist": [ {
+      "clip_speed": 1.0,
+      "fadein": false,
+      "fadeout": false,
+      "filter_intensity": 0.0,
+      "filter_name": "",
+      "in": -1,
+      "left_transition_frames": 0,
+      "mute": false,
+      "out": -1,
+      "path": "D:\\Downloads\\sze\\New folder\\New folder (3)\\output2.mp4",
+      "right_transition_frames": 0,
+      "separated_audio": false,
+      "smooth_grade": 0,
+      "time": 750360,
+      "transition_type": 0,
+      "volume": 100,
+      "white_grade": 0
+   } ],
+   "tracklist": [ {
+      "fadein": false,
+      "fadeout": false,
+      "index": 0,
+      "mute": false,
+      "volume": 100
+   }, {
+      "fadein": false,
+      "fadeout": false,
+      "index": 1,
+      "mute": false,
+      "volume": 100
+   }, {
+      "fadein": false,
+      "fadeout": false,
+      "index": 2,
+      "mute": false,
+      "volume": 100
+   }, {
+      "fadein": false,
+      "fadeout": false,
+      "index": 3,
+      "mute": false,
+      "volume": 100
+   } ]
+}
