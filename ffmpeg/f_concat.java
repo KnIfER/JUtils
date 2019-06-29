@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -26,11 +27,16 @@ public class f_concat {
 
 	static boolean checkMd5=true;
 	static boolean delete_when__checkMd5=true;
+	static boolean output_concat_list=true;
+	static boolean output_kuaijianjia_proj=true;
+	static boolean recursive_folder=false;
+	static String path = "D:\\Downloads\\sze\\New folder\\芈盈家居生活馆\\CHIVO";
 	public static void main(String[] args) {
+		boolean debugggingFileLister = true;
 		CMN.Log(args);
-		String path = "F:\\vide\\New folder";
-		boolean output_concat_list=true;
-		boolean output_kuaijianjia_proj=true;
+		if(debugggingFileLister) {
+			args = new String[] {"1 3 5"};
+		}
 		for(String sI:args) {
 			if(numeric_pattern.matcher(sI).matches()) {
 				String[] arr = sI.split(" ");
@@ -50,6 +56,9 @@ public class f_concat {
 						case 4:
 							output_kuaijianjia_proj=false;
 						break;
+						case 5:
+							recursive_folder=true;
+						break;
 					}
 				}
 			}else {
@@ -62,41 +71,19 @@ public class f_concat {
 			}
 		}
 		
-		final HashMap<String,File> ckecker = new HashMap<>();
-		File[] arr = new File(path).listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				String sufix = pathname.getName().toLowerCase();
-				if(sufix.endsWith(".mp4") || sufix.endsWith(".flv")) {
-					if(!checkMd5) return true;
-					if(!sufix.startsWith("_!_"))
-					try {
-						FileInputStream fio;
-						String md5 = DigestUtils.md5Hex(fio = new FileInputStream(pathname));
-						fio.close();
-						//System.out.println(md5);
-						File previous = ckecker.get(md5);
-						if(previous==null) {
-							ckecker.put(md5, pathname);
-							return true;
-						}else {
-							if(previous.length()==pathname.length()) {
-								System.out.println(pathname.getAbsolutePath()+" delete result... "+(delete_when__checkMd5?String.valueOf(pathname.delete()):"not deleting"));
-							}
-							return false;
-						}
-					} catch (Exception e) {e.printStackTrace();}
-				}
-				return false;
-			}});
-		if(arr==null||arr.length==0) {
+		ArrayList<File> files = fetch_file_arr(0, new File(path), null);
+		
+		
+		if(files.size()==0) {
 			CMN.Log("no media");
 			return;
 		}
-		ArrayList<File> files = new ArrayList<>(Arrays.asList(arr));
+		
 		Collections.sort(files, new Comparator<File>() {
 			@Override
 			public int compare(File o1, File o2) {
+				if(!o1.getParent().equals(o2.getParent()))
+					return o1.compareTo(o2);
 				String n1 = o1.getName();
 				String n2 = o2.getName();
 				int minLen = Math.min(n1.length(), n2.length());
@@ -140,7 +127,7 @@ public class f_concat {
 				}
 				return n1.compareTo(n2);
 			}});
-		arr = files.toArray(new File[] {});
+		File[] arr = files.toArray(new File[] {});
 
 		//初次写文件
 		if (output_concat_list) {/* true false */
@@ -282,6 +269,74 @@ public class f_concat {
 		
 		
 		
+	}
+	
+	
+
+	private static FileFilter mFileFilter = new FileFilter() {
+		@Override
+		public boolean accept(File pathname) {
+			if(pathname.isDirectory()) {
+				if(recursive_folder) {
+					directorys.add(pathname);
+				}
+			}else {
+				String sufix = pathname.getName().toLowerCase();
+				if(sufix.endsWith(".mp4") || sufix.endsWith(".flv")) {
+					if(!checkMd5) return true;
+					if(!sufix.startsWith("_!_"))
+					try {
+						FileInputStream fio;
+						String md5 = DigestUtils.md5Hex(fio = new FileInputStream(pathname));
+						fio.close();
+						//System.out.println(md5);
+						File previous = ckecker.get(md5);
+						if(previous==null) {
+							ckecker.put(md5, pathname);
+							return true;
+						}else {
+							if(previous.length()==pathname.length()) {
+								System.out.println(pathname.getAbsolutePath()+" delete result... "+(delete_when__checkMd5?String.valueOf(pathname.delete()):"not deleting"));
+							}
+							return false;
+						}
+					} catch (Exception e) {e.printStackTrace();}
+				}
+			}
+			return false;
+		}};
+		
+	final static HashMap<String,File> ckecker = new HashMap<>();
+	static ArrayList<File> directorys;
+	
+	private static ArrayList<File> fetch_file_arr(int depth, File path, ArrayList<File> container) {
+		if(recursive_folder) {
+			if(directorys==null)
+				directorys = new ArrayList<>();
+			else
+				directorys.clear();
+		}
+		
+		File[] arr = path.listFiles(mFileFilter);
+		
+		if(arr==null)
+			return null;
+		
+		if(recursive_folder) {
+			
+			if(container==null) {
+				container=new ArrayList<>(Arrays.asList(arr));
+			}else
+				container.addAll(Arrays.asList(arr));
+			
+			File files[] = directorys.toArray(new File[directorys.size()]);
+			for(File dI:files) {
+				fetch_file_arr(++depth, dI, container);
+			}
+			
+			return container;
+		}else
+			return new ArrayList<>(Arrays.asList(arr));
 	}
 	
 }
