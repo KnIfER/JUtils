@@ -10,7 +10,7 @@ public class vectorpathTweaker {
 	public static void main(String[] args) {
 		//改造vector path
 		float viewportHeight=24, viewportWidth=24;
-		float scaler =.4f;
+		float scaler =.8f;
 		float scalerY = scaler;
 		float transX=0f;
 		float transY=0f;
@@ -20,7 +20,10 @@ public class vectorpathTweaker {
 		boolean shrink_orgs = true;
 		//String pathdata = "M20,19v-4L8,7 12,4.5 20,9V5L12,0.5 4,5v4 l12.63,7.89L12,19.5 4,15v4l8,4.5z";
 		//pathdata = "M20,19v-4L8,7 12,4.5 20,9V5L12,0.5 4,5v4 L16.63,16.98 12,19.5 4,15v4L12,23.5z";
-		String pathdata = "M20,12l-1.41,-1.41L13,16.17V4h-2v12.17l-5.58,-5.59L4,12l8,8 8,-8z";
+		String pathdata = "M15.2,15l-0.56,-0.56L12.4,16.67V5.8h-0.8v10.87l-2.23,-2.24L8.8,15l3.2,3.2 3.2,-3.2z\r\n" + 
+				"M7.2,15l-0.56,-0.56L4.4,16.67V5.8h-0.8v10.87l-2.23,-2.24L0.8,15l3.2,3.2 3.2,-3.2z\r\n" + 
+				"M23.2,15l-0.56,-0.56L20.4,16.67V5.8h-0.8v10.87l-2.23,-2.24L16.8,15l3.2,3.2 3.2,-3.2z\r\n" + 
+				"";
 		StringBuilder pathbuilder = new StringBuilder();
 		Pattern reg = Pattern.compile("M|l|L|z|s|c|C|S|V|v|h|H| ");
 		Pattern regLower = Pattern.compile("[a-z]");
@@ -100,9 +103,9 @@ public class vectorpathTweaker {
 							val*=(isVertical?scalerY:scaler);
 						else {// 处理  absolute vertical or horizontal case
 							if(isVertical) {//vertical
-								val=scalerY*(val-Org[1])+Org[1];
+								val=scalerY*(val-Org[1])+Org[1]+deltaOrg[1];
 							}else {//horizontal
-								val=scalerY*(val-Org[0])+Org[0];
+								val=scalerY*(val-Org[0])+Org[0]+deltaOrg[0];
 							}
 						}
 						pathbuilder.append(trimFloatString(String.format("%.2f", val)));
