@@ -10,20 +10,21 @@ public class vectorpathTweaker {
 	public static void main(String[] args) {
 		//改造vector path
 		float viewportHeight=24, viewportWidth=24;
-		float scaler = 2.25f;
+		float scaler =.4f;
 		float scalerY = scaler;
 		float transX=0f;
 		float transY=0f;
 		boolean tranverse = false;
 		boolean flipX = false;
 		boolean keep_rel_group = true;
-		boolean shrink_orgs = false;
+		boolean shrink_orgs = true;
 		//String pathdata = "M20,19v-4L8,7 12,4.5 20,9V5L12,0.5 4,5v4 l12.63,7.89L12,19.5 4,15v4l8,4.5z";
 		//pathdata = "M20,19v-4L8,7 12,4.5 20,9V5L12,0.5 4,5v4 L16.63,16.98 12,19.5 4,15v4L12,23.5z";
-		String pathdata = "M3.8,20.8h7.49v-7.49L3.8,13.31v7.49z";
+		String pathdata = "M20,12l-1.41,-1.41L13,16.17V4h-2v12.17l-5.58,-5.59L4,12l8,8 8,-8z";
 		StringBuilder pathbuilder = new StringBuilder();
-		Pattern reg = Pattern.compile("M|l|L|z|s|c|V|v|h|H| ");
+		Pattern reg = Pattern.compile("M|l|L|z|s|c|C|S|V|v|h|H| ");
 		Pattern regLower = Pattern.compile("[a-z]");
+		Pattern regVertical = Pattern.compile("V|v");
 		Matcher m = reg.matcher(pathdata);
 		int idx=0;
 		String lastCommand = null;
@@ -44,7 +45,7 @@ public class vectorpathTweaker {
 				//CMN.Log(pathdata.substring(idx+1,now));
 				pathbuilder.append(pathdata.substring(idx,idx+1));
 				String[] arr = pathdata.substring(idx+1,now).split(",");
-				if(arr.length==2) {
+				if(arr.length==2) {//x-y coordinates
 					float x=Float.valueOf(arr[0]);
 					if(isOrg) {
 						Org=new Float[2];
@@ -58,6 +59,7 @@ public class vectorpathTweaker {
 						}else if(keep_rel_group) {
 							deltaOrg[0]=scaler*(x-firstOrg[0])+firstOrg[0]-x+transX;
 						}
+						if(flipX) x = viewportWidth-x;
 					}else if(xiaoxie){
 						x=x*scaler;
 						if(flipX) x = -x;
@@ -88,12 +90,22 @@ public class vectorpathTweaker {
 					if(!xiaoxie)x+=deltaOrg[1];
 					pathbuilder.append(trimFloatString(String.format("%.2f", x)));
 				}
-				else {
+				else {//singleton coordinates
 					String key = pathdata.substring(idx+1,now);
 					if(lastCommand!=null)
 					try {
+						boolean isVertical = regVertical.matcher(lastCommand).matches();
 						float val = Float.valueOf(key);
-						pathbuilder.append(trimFloatString(String.format("%.2f", scaler*val)));
+						if(xiaoxie)
+							val*=(isVertical?scalerY:scaler);
+						else {// 处理  absolute vertical or horizontal case
+							if(isVertical) {//vertical
+								val=scalerY*(val-Org[1])+Org[1];
+							}else {//horizontal
+								val=scalerY*(val-Org[0])+Org[0];
+							}
+						}
+						pathbuilder.append(trimFloatString(String.format("%.2f", val)));
 					} catch (NumberFormatException e) {
 						//CMN.Log(key);
 						pathbuilder.append(key);
