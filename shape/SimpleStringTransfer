@@ -1,0 +1,201 @@
+package test;
+
+import com.knziha.rbtree.ParralelListTree;
+import org.xml.sax.XMLReader;
+
+import javax.sql.rowset.spi.XmlReader;
+import javax.swing.text.html.HTMLDocument;
+import javax.xml.crypto.XMLStructure;
+import javax.xml.crypto.dsig.XMLSignContext;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class SimpleStringTransfer {
+	
+	
+	/** Simply transfer key-values pair among xmls. */
+    public static void main(String[] args) throws Exception {
+		/** 这是我们感兴趣的子资料文件夹*/
+		String[] filters = new String[]{
+				"values"
+				,"values-ar"
+				,"values-az"
+				,"values-ca"
+				,"values-cs"
+				,"values-da"
+				,"values-de"
+				,"values-el"
+				,"values-es"
+				,"values-fi"
+				,"values-fr"
+				,"values-gl"
+				,"values-hr"
+				,"values-hu"
+				,"values-id"
+				,"values-in"
+				,"values-it"
+				,"values-ja"
+				,"values-ko-rKR"
+				,"values-lt"
+				,"values-nb"
+				,"values-nl"
+				,"values-pl"
+				,"values-pt"
+				,"values-pt-rBR"
+				,"values-ru"
+				,"values-sk"
+				,"values-sl"
+				,"values-sr"
+				,"values-sv"
+				,"values-tr"
+				,"values-uk"
+				,"values-zh-rTW"
+				,"values-zh-rCN"
+		};
+		/** 这是我们感兴趣的键值*/
+		String[] keys_to_transfer = new String[]{
+				//"settings", "cancel", "yes", "no", "copy_to", "move_to",
+				//"grid", "list", "name", "last_modified", "size", "by_file_type\nfile_type", "large", "small", "medium",
+				//"delete", "share", "select_all",
+				//"slideshow"
+
+				//"subtitles", "use_default\nuse_surfaceview"
+				//"playlists\nplaylist", "open", "sortby"
+				//"dialog_sd_wizard\nshow", "thumbnail", "about", "rename", "refresh", "lock"
+				"exit", "pv_select", "favorite"
+
+		};
+
+		/** 这是我们的源文件夹*/
+		//File sourceFolder=new File("D:\\Code\\Fillin\\Simple-Gallery-knziha\\commons\\src\\main\\res");
+		//File sourceFolder=new File("D:\\Code\\Fillin\\Simple-Gallery-knziha\\app\\src\\main\\res");
+
+
+		File sourceFolder=new File("D:\\Code\\ODTranslate\\filepicker\\src\\main\\res\\");
+
+
+		/** 这是我们要修改的文件夹*/
+		File targetFolder=new File("D:\\Code\\ODPlayer\\filepicker\\src\\main\\res\\");
+
+		//File targetFolder=new File("D:\\Code\\ODPlayer\\ODPlayer\\src\\main\\res\\");
+
+		boolean 覆盖=false;
+
+		for(String sI:filters){
+			File file_in1 = new File(sourceFolder, sI+"\\strings.xml");
+			File file_in2 = new File(targetFolder, sI+"\\strings.xml");
+			//CMN.Log(sI, file_in1.exists() , file_in2.exists());
+			if(file_in1.exists() && file_in2.exists()){
+				BufferedInputStream in1 = new BufferedInputStream(new FileInputStream(file_in1));
+				BufferedInputStream in2 = new BufferedInputStream(new FileInputStream(file_in2));
+				int idx;
+				//去掉末尾标签。
+				String source_xml=new String(in1.readAllBytes(), StandardCharsets.UTF_8);  in1.close();
+				if((idx=source_xml.indexOf("</resources>"))!=-1) if(source_xml.indexOf("</resources>",idx+5)!=-1)
+					{CMN.Log("出错 indexOf", file_in1); continue;}
+				String my_xml=new String(in2.readAllBytes(), StandardCharsets.UTF_8);  in2.close();
+				if((idx=my_xml.indexOf("</resources>"))!=-1) if(my_xml.indexOf("</resources>",idx+5)!=-1)
+					{CMN.Log("出错 file_in2", file_in2); continue;}
+				source_xml=source_xml.replace("</resources>","");
+				my_xml=my_xml.replace("</resources>","");
+				boolean modified=false;
+				for(String ssI:keys_to_transfer){
+					//CMN.Log("开始替换==============",ssI,"====================");
+					String acronym=null;
+					if(ssI.contains("\n")){
+						String[] arr = ssI.split("\n");
+						ssI=arr[0];
+						acronym=arr[1];
+					}
+					Pattern p = Pattern.compile("<string name=\""+ssI+"\">(.*)</string>");
+					Matcher m = p.matcher(source_xml);
+					if(m.find()){
+						String result = m.group(0);
+						String value = m.group(1);
+						//CMN.Log("找到", result);
+						//首先，看看my文件里面是否已有键值。
+						if(acronym!=null){
+							result=result.replace("\""+ssI+"\"", "\""+acronym+"\"");
+							p = Pattern.compile("<string name=\""+acronym+"\">(.*)</string>");
+						}
+						m = p.matcher(my_xml);
+						if(m.find()){
+							if(覆盖){
+								if(!result.toLowerCase().equals(m.group(0).toLowerCase())){
+									my_xml=m.replaceFirst(result);
+									modified=true;
+								}
+								//else CMN.Log(file_in2, sI, " !!! = 已最新！ ", ssI, "= ", value);
+							}
+						}else{
+							//新建键值
+							my_xml=my_xml+"\t"+result+"\n";
+							modified=true;
+						}
+					}else{
+						CMN.Log("!!! 找不到 "+ssI," @ ", file_in1);
+					}
+				}
+
+				//最后， 保存一下 my_xml。
+				if(modified){
+					my_xml+="</resources>";
+					CMN.Log("……修改……", file_in2);
+					BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file_in2));
+					out.write(my_xml.getBytes(StandardCharsets.UTF_8));
+					out.flush();
+				}
+			}
+
+
+
+
+
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+    
+}
+
+
